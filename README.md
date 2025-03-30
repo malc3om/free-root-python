@@ -13,6 +13,7 @@ FreeRoot Python allows you to run a lightweight Ubuntu environment directly in y
 - **No Root Required**: Uses PRoot to provide a virtual root environment without requiring actual root privileges
 - **Cross-Platform**: Works on x86_64 and ARM64 architectures
 - **Customizable**: Configure your Ubuntu environment with simple Python commands
+- **Git Integration**: Directly clone repositories into your Ubuntu environment
 
 ## Installation
 
@@ -53,6 +54,18 @@ fr.run_command('echo "print(\'Hello from Ubuntu\')" > test.py')
 # Run the script
 output = fr.run_command('python3 test.py')
 print(output)
+```
+
+### Cloning Git repositories
+
+```python
+# Clone a repository
+fr.clone_repo('https://github.com/username/repo.git')
+
+# Clone a specific branch to a specific directory
+fr.clone_repo('https://github.com/username/repo.git', 
+              target_dir='custom-dir', 
+              branch='develop')
 ```
 
 ### Cleaning up
