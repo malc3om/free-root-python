@@ -163,6 +163,63 @@ class FreeRoot:
             print(f"Error output: {e.stderr}")
             raise
 
+    def clone_repo(self, repo_url, target_dir=None, branch=None):
+        """
+        Clone a git repository into the Ubuntu environment
+        
+        Parameters:
+        -----------
+        repo_url : str
+            URL of the git repository to clone
+        target_dir : str, optional
+            Directory where to clone the repository (relative to /root).
+            If None, the repository will be cloned to /root/{repo_name}
+        branch : str, optional
+            Branch to clone. If None, the default branch will be used
+            
+        Returns:
+        --------
+        str
+            Output of the git clone command
+        """
+        if not os.path.exists(self.installed_flag):
+            raise RuntimeError("FreeRoot is not installed. Run install() first.")
+        
+        # Install git if it's not already installed
+        try:
+            self.run_command("which git >/dev/null 2>&1 || (apt-get update && apt-get install -y git)")
+        except Exception as e:
+            print(f"Failed to ensure git is installed: {e}")
+            raise
+        
+        # Prepare git clone command
+        clone_cmd = f"git clone {repo_url}"
+        
+        # Add branch if specified
+        if branch:
+            clone_cmd += f" --branch {branch}"
+        
+        # Add target directory if specified
+        if target_dir:
+            clone_cmd += f" {target_dir}"
+            work_dir = "/root"
+        else:
+            # Extract repo name from URL to determine where it was cloned
+            repo_name = repo_url.split('/')[-1]
+            if repo_name.endswith('.git'):
+                repo_name = repo_name[:-4]
+            work_dir = "/root"
+            target_dir = repo_name
+        
+        # Run the clone command
+        output = self.run_command(clone_cmd)
+        
+        # Print success message
+        full_path = f"/root/{target_dir}"
+        print(f"Repository cloned successfully to {full_path}")
+        
+        return output
+
     def start_shell(self):
         """Start an interactive shell in the PRoot environment"""
         if not os.path.exists(self.installed_flag):
