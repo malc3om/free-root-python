@@ -75,6 +75,52 @@ fr.clone_repo('https://github.com/username/repo.git',
 fr.cleanup()
 ```
 
+## Troubleshooting
+
+### Package Installation Issues
+
+If you encounter package installation errors like:
+
+```
+E: dpkg was interrupted, you must manually run 'dpkg --configure -a' to correct the problem.
+```
+
+You can fix it using these commands:
+
+```python
+# Fix interrupted package installation
+fr.run_command('dpkg --configure -a')
+
+# Then update and install packages
+fr.run_command('apt-get update')
+fr.run_command('apt-get install -y your-package-name')
+```
+
+For more stubborn package issues, try:
+
+```python
+# Remove lock files if needed
+fr.run_command('rm -f /var/lib/dpkg/lock /var/lib/dpkg/lock-frontend')
+fr.run_command('rm -f /var/lib/apt/lists/lock /var/cache/apt/archives/lock')
+
+# Fix interrupted package installation
+fr.run_command('dpkg --configure -a')
+
+# Fix broken dependencies
+fr.run_command('apt-get install -f -y')
+```
+
+### Import Issues
+
+If you have trouble importing the module, try adding the package location to your Python path:
+
+```python
+import sys
+sys.path.append('/path/to/site-packages')
+import freeroot
+fr = freeroot.setup_ubuntu()
+```
+
 ## Advanced Usage
 
 For more advanced usage, see the `example.ipynb` notebook in this repository.
