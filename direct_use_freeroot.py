@@ -22,11 +22,15 @@ import urllib.request
 import sys
 import shutil
 import stat
+import tarfile
+import io
 
 
 class FreeRoot:
     def __init__(self, rootfs_dir=None):
-        self.rootfs_dir = rootfs_dir or os.path.join(os.getcwd(), "rootfs")
+        self.user_home = os.path.expanduser("~")
+        self.rootfs_dir = rootfs_dir or os.path.join(self.user_home, "rootfs")
+        
         self.arch = platform.machine()
         if self.arch == "x86_64":
             self.arch_alt = "amd64"
@@ -40,34 +44,44 @@ class FreeRoot:
         self.proot_path = os.path.join(self.rootfs_dir, "usr", "local", "bin", "proot")
         self.installed_flag = os.path.join(self.rootfs_dir, ".installed")
 
-    def _download_file(self, url, target_path, max_retries=3):
-        os.makedirs(os.path.dirname(target_path), exist_ok=True)
+    def _download_file(self, url, target_path=None, return_data=False, max_retries=3):
         for i in range(max_retries):
             try:
                 print(f"Downloading {url}")
-                urllib.request.urlretrieve(url, target_path)
-                return True
+                if return_data:
+                    with urllib.request.urlopen(url) as response:
+                        return response.read()
+                else:
+                    if target_path:
+                        os.makedirs(os.path.dirname(target_path), exist_ok=True)
+                        urllib.request.urlretrieve(url, target_path)
+                        return True
             except Exception as e:
                 print(f"Attempt {i+1} failed: {e}")
-        return False
+        return False if not return_data else None
 
     def _setup_proot(self):
-        if not self._download_file(self.proot_url, self.proot_path):
+        data = self._download_file(self.proot_url, return_data=True)
+        if not data:
             raise RuntimeError("Failed to download PRoot")
+            
+        os.makedirs(os.path.dirname(self.proot_path), exist_ok=True)
+        with open(self.proot_path, 'wb') as f:
+            f.write(data)
         os.chmod(self.proot_path, os.stat(self.proot_path).st_mode | stat.S_IEXEC)
 
     def _extract_rootfs(self):
-        with tempfile.NamedTemporaryFile(suffix='.tar.gz', delete=False) as temp_file:
-            temp_path = temp_file.name
-        try:
-            if not self._download_file(self.ubuntu_url, temp_path):
-                raise RuntimeError("Failed to download Ubuntu")
-            os.makedirs(self.rootfs_dir, exist_ok=True)
-            print(f"Extracting Ubuntu rootfs to {self.rootfs_dir}")
-            subprocess.run(["tar", "-xf", temp_path, "-C", self.rootfs_dir], check=True)
-        finally:
-            if os.path.exists(temp_path):
-                os.unlink(temp_path)
+        data = self._download_file(self.ubuntu_url, return_data=True)
+        if not data:
+            raise RuntimeError("Failed to download Ubuntu")
+            
+        print(f"Extracting Ubuntu rootfs to {self.rootfs_dir}")
+        os.makedirs(self.rootfs_dir, exist_ok=True)
+        
+        # Use Python's tarfile instead of system tar command
+        tar_data = io.BytesIO(data)
+        with tarfile.open(fileobj=tar_data, mode='r:gz') as tar:
+            tar.extractall(path=self.rootfs_dir)
 
     def _configure_rootfs(self):
         # Configure /etc/resolv.conf to enable networking
