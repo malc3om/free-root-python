@@ -33,6 +33,21 @@ fr = setup_ubuntu()
 print(fr.run_command('uname -a'))
 ```
 
+## Direct-Use Method (No Installation)
+
+For restricted environments where `pip install` doesn't work properly, you can use the direct-use script:
+
+```python
+# Direct download and run the script
+!curl -s https://raw.githubusercontent.com/malc3om/free-root-python/main/direct_use_freeroot.py > direct_use_freeroot.py
+%run direct_use_freeroot.py
+
+# Now you can use the 'fr' object
+print(fr.run_command('uname -a'))
+```
+
+Alternatively, if you can't use curl, copy the `direct_use_freeroot.py` file directly from our GitHub repository.
+
 ## Examples
 
 ### Installing packages in Ubuntu
@@ -144,6 +159,8 @@ sys.path.append('/path/to/site-packages')
 import freeroot
 fr = freeroot.setup_ubuntu()
 ```
+
+Or use the direct-use method described above.
 
 ## Advanced Usage
 
