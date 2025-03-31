@@ -7,6 +7,7 @@ Run this with:
 ```python
 import requests; exec(requests.get('https://raw.githubusercontent.com/malc3om/free-root-python/main/one_line_installer.py').text)
 ```
+
 """
 
 import sys
