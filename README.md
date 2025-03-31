@@ -49,7 +49,7 @@ fr.run_command('apt-get install -y wget curl nano')
 
 ```python
 # Create a Python script
-fr.run_command('echo "print(\'Hello from Ubuntu\')" > test.py')
+fr.run_command('echo \"print(\'Hello from Ubuntu\')\" > test.py')
 
 # Run the script
 output = fr.run_command('python3 test.py')
@@ -77,7 +77,7 @@ fr.cleanup()
 
 ## Troubleshooting
 
-### Package Installation Issues
+### Package System Issues
 
 If you encounter package installation errors like:
 
@@ -108,6 +108,30 @@ fr.run_command('dpkg --configure -a')
 
 # Fix broken dependencies
 fr.run_command('apt-get install -f -y')
+```
+
+### Advanced Package System Recovery
+
+If you encounter severe package system errors or dependency issues, use this more aggressive approach:
+
+```python
+# Fix package system with multiple fallback commands
+fr.run_command('dpkg --configure -a || true')
+fr.run_command('apt-get update -y || true')
+fr.run_command('apt-get install -y --reinstall libc6 || true')
+fr.run_command('apt-get install -y --fix-broken || true')
+fr.run_command('apt-get update && apt-get install -y libc-bin libc6 || true')
+fr.run_command('apt-get update && apt-get upgrade -y || true')
+```
+
+### Locale Issues
+
+If you see locale warnings like "warning: setlocale: LC_ALL: cannot change locale", install locale support:
+
+```python
+fr.run_command("apt-get install -y locales")
+fr.run_command("locale-gen en_US.UTF-8")
+fr.run_command("update-locale LANG=en_US.UTF-8")
 ```
 
 ### Import Issues
